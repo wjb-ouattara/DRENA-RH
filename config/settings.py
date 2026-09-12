@@ -7,22 +7,35 @@ Toute modification de comportement passe par ce fichier.
 import sys
 from pathlib import Path
 
+def get_base_dir() -> Path:
+    """
+    Retourne le dossier racine de l'application, que celle-ci tourne
+    depuis les sources Python OU depuis un exécutable PyInstaller.
+    """
+    if getattr(sys, "frozen", False):
+        # Application "gelée" (exécutable PyInstaller)
+        # sys.executable = chemin vers DRENAET-RH.exe
+        return Path(sys.executable).resolve().parent
+    else:
+        # Développement : ce fichier est dans config/, la racine est un niveau au-dessus
+        return Path(__file__).resolve().parent.parent
+
 # ============================================================
 # MÉTADONNÉES DE L'APPLICATION
 # ============================================================
-APP_NAME = "DRENAET-RH"
-APP_FULL_NAME = "DRENAET-RH — Gestion des Ressources Humaines"
+APP_NAME = "MENAET-RH"
+APP_FULL_NAME = "MENAET-RH - Gestion des Ressources Humaines"
 APP_VERSION = "1.0.0"
 APP_AUTHOR = "Étudiant Génie Informatique"
-APP_ORGANIZATION = "DRENAET de Katiola"
+APP_ORGANIZATION = "MENAET de Katiola"
 APP_DESCRIPTION = "Outil de gestion des ressources humaines"
-ORGANIZATION = "DRENAET de Katiola"
+ORGANIZATION = "MENAET de Katiola"
 
 # ============================================================
 # CHEMINS DU PROJET
 # ============================================================
 # Racine du projet (calculée dynamiquement)
-PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+PROJECT_ROOT = get_base_dir()
 
 # Dossiers principaux
 DATA_DIR = PROJECT_ROOT / "data"
@@ -216,22 +229,6 @@ DRENAET_INFO = {
     "ministere": "Ministère de l'Éducation Nationale, "
                  "de l'Alphabétisation et de l'Enseignement Technique",
 }
-
-def get_base_dir() -> Path:
-    """
-    Retourne le dossier racine de l'application, que celle-ci tourne
-    depuis les sources Python OU depuis un exécutable PyInstaller.
-    """
-    if getattr(sys, "frozen", False):
-        # Application "gelée" (exécutable PyInstaller)
-        # sys.executable = chemin vers DRENAET-RH.exe
-        return Path(sys.executable).resolve().parent
-    else:
-        # Développement : ce fichier est dans config/, la racine est un niveau au-dessus
-        return Path(__file__).resolve().parent.parent
- 
- 
-BASE_DIR = get_base_dir()
  
 # Les autres chemins (RESOURCES_DIR, IMAGES_DIR, STYLES_DIR, OUTPUT_DIR,
 # DATA_DIR...) qui étaient déjà définis relativement à BASE_DIR n'ont
