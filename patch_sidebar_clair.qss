@@ -1,0 +1,27 @@
+/* ========================================================================
+   PATCH — Sidebar en thème clair (à coller en FIN de main.qss)
+   ======================================================================== */
+
+QWidget#sidebar {
+    background-color: #FFFFFF;
+    border-right: 1px solid #F1F5F9;
+}
+
+QWidget#sidebarHeader {
+    background-color: transparent;
+}
+
+QLabel#appLogo {
+    color: #1C1917;
+    background: transparent;
+}
+
+QLabel#appSubtitle {
+    color: #78716C;
+    background: transparent;
+}
+
+QLabel#sidebarFooter {
+    color: #D6D3D1;
+    background: transparent;
+}

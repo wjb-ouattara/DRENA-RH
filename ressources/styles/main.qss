@@ -1,0 +1,430 @@
+/* ============================================================
+   DRENAET-RH — Feuille de style principale
+   Palette indigo/violet moderne
+   ============================================================ */
+
+/* ============= VARIABLES (PyQt6 ne supporte pas, on duplique) =====
+   Couleurs :
+   - Primary    : #4338CA (indigo profond)
+   - Violet     : #7C3AED
+   - Pink       : #EC4899
+   - Cyan       : #06B6D4
+   - Amber      : #F59E0B
+   - Emerald    : #10B981
+   - Red        : #DC2626
+   - BG light   : #FAFBFF
+   - BG sidebar : #1E1B4B
+   - Text dark  : #1E1B4B
+   - Text muted : #64748B
+   - Border     : #E2E8F0
+================================================================ */
+
+
+/* =============== GLOBAL =============== */
+* {
+    font-family: "Segoe UI", "Inter", sans-serif;
+    color: #1E1B4B;
+}
+
+QMainWindow, QWidget#mainContainer {
+    background-color: #FAFBFF;
+}
+
+
+/* =============== SIDEBAR =============== */
+QWidget#sidebar {
+    background-color: #1E1B4B;
+    border: none;
+}
+
+QWidget#sidebarHeader {
+    background-color: #1E1B4B;
+    padding: 20px;
+    border-bottom: 1px solid #312E81;
+}
+
+QLabel#appLogo {
+    color: #FFFFFF;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 4px;
+}
+
+QLabel#appSubtitle {
+    color: #C7D2FE;
+    font-size: 10px;
+    padding-bottom: 4px;
+}
+
+/* Boutons de menu de la sidebar */
+QPushButton#sidebarBtn {
+    background-color: transparent;
+    color: #E0E7FF;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 3px 12px;
+}
+
+QPushButton#sidebarBtn:hover {
+    background-color: #312E81;
+    color: #FFFFFF;
+}
+
+QPushButton#sidebarBtn:checked {
+    background-color: #4338CA;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+/* Footer sidebar */
+QLabel#sidebarFooter {
+    color: #94A3B8;
+    font-size: 10px;
+    padding: 12px;
+    border-top: 1px solid #312E81;
+}
+
+
+/* =============== HEADER (TOPBAR) =============== */
+QWidget#headerBar {
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #E2E8F0;
+    min-height: 60px;
+    max-height: 60px;
+}
+
+QLabel#pageTitle {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1E1B4B;
+    padding-left: 16px;
+}
+
+QLabel#userInfo {
+    color: #64748B;
+    font-size: 12px;
+}
+
+QLabel#userName {
+    color: #1E1B4B;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QPushButton#logoutBtn {
+    background-color: #FEE2E2;
+    color: #DC2626;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+QPushButton#logoutBtn:hover {
+    background-color: #FECACA;
+}
+
+
+/* =============== ZONE CENTRALE =============== */
+QWidget#contentArea {
+    background-color: #FAFBFF;
+}
+
+QScrollArea {
+    background-color: transparent;
+    border: none;
+}
+
+QScrollArea > QWidget > QWidget {
+    background-color: transparent;
+}
+
+
+/* =============== KPI CARDS =============== */
+QFrame#kpiCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 0px;
+}
+
+QLabel#kpiLabel {
+    color: #FFFFFF;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 8px 14px;
+    background-color: #4338CA;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+QLabel#kpiValue {
+    font-size: 32px;
+    font-weight: bold;
+    color: #4338CA;
+    padding: 12px;
+}
+
+QLabel#kpiSubtitle {
+    color: #64748B;
+    font-size: 10px;
+    font-style: italic;
+    padding: 4px 14px 14px 14px;
+}
+
+
+/* =============== SECTION CARD (carte de contenu) =============== */
+QFrame#card {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+QLabel#cardTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1E1B4B;
+    padding-bottom: 8px;
+}
+
+QLabel#cardSubtitle {
+    font-size: 12px;
+    color: #64748B;
+    padding-bottom: 12px;
+}
+
+
+/* =============== LOGIN SCREEN =============== */
+QWidget#loginContainer {
+    background-color: #4338CA;
+}
+
+QFrame#loginCard {
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    padding: 40px 50px;
+    border: 1px solid #E2E8F0;
+}
+
+QLabel#loginAppName {
+    font-size: 28px;
+    font-weight: bold;
+    color: #4338CA;
+    padding: 8px 0;
+}
+
+QLabel#loginAppSubtitle {
+    font-size: 12px;
+    color: #64748B;
+    padding-bottom: 24px;
+}
+
+QLabel#loginFieldLabel {
+    font-size: 11px;
+    font-weight: bold;
+    color: #1E1B4B;
+    padding-top: 12px;
+    padding-bottom: 4px;
+}
+
+QLineEdit#loginField {
+    background-color: #FAFBFF;
+    border: 2px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #1E1B4B;
+}
+
+QLineEdit#loginField:focus {
+    border-color: #4338CA;
+    background-color: #FFFFFF;
+}
+
+QPushButton#loginBtn {
+    background-color: #4338CA;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-top: 16px;
+}
+
+QPushButton#loginBtn:hover {
+    background-color: #312E81;
+}
+
+QPushButton#loginBtn:pressed {
+    background-color: #2A2861;
+}
+
+QPushButton#loginBtn:disabled {
+    background-color: #94A3B8;
+    color: #FFFFFF;
+}
+
+QLabel#loginError {
+    color: #DC2626;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 8px;
+    background-color: #FEE2E2;
+    border-radius: 6px;
+}
+
+QLabel#loginInfo {
+    color: #64748B;
+    font-size: 10px;
+    font-style: italic;
+    padding-top: 16px;
+}
+
+
+/* =============== FORM ELEMENTS (général) =============== */
+QLineEdit, QComboBox, QDateEdit, QTextEdit, QSpinBox {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #1E1B4B;
+}
+
+QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QTextEdit:focus, QSpinBox:focus {
+    border-color: #4338CA;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 24px;
+}
+
+QPushButton {
+    background-color: #4338CA;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background-color: #312E81;
+}
+
+QPushButton:disabled {
+    background-color: #94A3B8;
+}
+
+QPushButton#secondaryBtn {
+    background-color: #FFFFFF;
+    color: #4338CA;
+    border: 1px solid #4338CA;
+}
+
+QPushButton#secondaryBtn:hover {
+    background-color: #E0E7FF;
+}
+
+
+/* =============== TABLES =============== */
+QTableWidget {
+    background-color: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    gridline-color: #F1F5F9;
+    selection-background-color: #E0E7FF;
+    selection-color: #1E1B4B;
+}
+
+QHeaderView::section {
+    background-color: #4338CA;
+    color: #FFFFFF;
+    padding: 10px;
+    border: none;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+
+/* =============== SCROLLBAR =============== */
+QScrollBar:vertical {
+    background-color: #FAFBFF;
+    width: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #C7D2FE;
+    border-radius: 6px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #4338CA;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    background: none;
+    border: none;
+}
+
+QScrollBar:horizontal {
+    background-color: #FAFBFF;
+    height: 12px;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #C7D2FE;
+    border-radius: 6px;
+    min-width: 30px;
+}
+
+
+/* =============== MESSAGEBOX =============== */
+QMessageBox {
+    background-color: #FFFFFF;
+}
+
+QMessageBox QPushButton {
+    min-width: 80px;
+    padding: 6px 14px;
+}
+
+/* ========================================================================
+   PATCH — Sidebar en thème clair (à coller en FIN de main.qss)
+   ======================================================================== */
+
+QWidget#sidebar {
+    background-color: #FFFFFF;
+    border-right: 1px solid #F1F5F9;
+}
+
+QWidget#sidebarHeader {
+    background-color: transparent;
+}
+
+QLabel#appLogo {
+    color: #1C1917;
+    background: transparent;
+}
+
+QLabel#appSubtitle {
+    color: #78716C;
+    background: transparent;
+}
+
+QLabel#sidebarFooter {
+    color: #D6D3D1;
+    background: transparent;
+}

@@ -1,0 +1,51 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Environnements virtuels
+venv/
+env/
+ENV/
+.venv
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== Système =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Application =====
+# Base de données locale (ne pas committer les données réelles)
+data/*.db
+data/*.db-journal
+data/backups/*.db
+
+# Documents générés (sortie de l'app)
+output/*/
+
+# Logs
+logs/
+*.log
+
+# Fichiers temporaires
+*.tmp
+~$*
+
+# ===== Tests =====
+.pytest_cache/
+.coverage
+htmlcov/

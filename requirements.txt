@@ -1,0 +1,30 @@
+# ============================================================
+# DRENAET-RH - Dépendances Python
+# Compatible Python 3.11+
+# ============================================================
+
+# --- Base de données ---
+SQLAlchemy==2.0.25
+
+# --- Sécurité ---
+bcrypt==4.1.2
+
+# --- Interface graphique PyQt6 (Sprint 2) ---
+PyQt6==6.6.1
+qtawesome==1.3.0
+
+# --- Documents (Sprints 5+) ---
+python-docx==1.1.0
+docx2pdf==0.1.8
+
+# --- Statistiques (Sprint 7) ---
+matplotlib==3.8.2
+pandas==2.1.4
+
+# --- Utilitaires ---
+Pillow==10.2.0
+python-dateutil==2.8.2
+openpyxl==3.1.2
+
+# --- Distribution (Sprint 8) ---
+pyinstaller==6.3.0
