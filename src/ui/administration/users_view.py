@@ -113,6 +113,13 @@ class UsersView(QWidget):
 
     # ====================================================================
     def refresh(self):
+        # Garde défensive : aucune liste de comptes ne doit être chargée pour
+        # un utilisateur non administrateur, même si la vue était atteinte.
+        if not UserSession.get_instance().is_admin:
+            self.total_lbl.setText("Accès réservé à l'Administrateur")
+            self._fill_table([])
+            return
+
         try:
             users = UserService.list_all()
         except SchemaUtilisateurInconnuError as e:

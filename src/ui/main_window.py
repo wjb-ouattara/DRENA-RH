@@ -58,6 +58,9 @@ FOOTER_MUTED = "#D6D3D1"
 SEPARATOR_LIGHT = "#F1F5F9"
 ORANGE_PRIMARY = "#F97316"
 
+# Pages dont l'accès est réservé au rôle "admin"
+ADMIN_ONLY_PAGES = frozenset({"parametres", "administration"})
+
 
 class MainWindow(ResizableWindowMixin, QMainWindow):
     """Fenêtre principale de l'application (frameless + redimensionnable)."""
@@ -305,30 +308,36 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
 
         layout.addStretch()
 
-        # === SÉPARATEUR (clair) ===
-        sep = QFrame()
-        sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet(f"background-color: {SEPARATOR_LIGHT}; max-height: 1px; border: none;")
-        layout.addWidget(sep)
-
-        # === MENU SECONDAIRE (Paramètres / Admin) ===
-        menus_bottom = [
-            ("parametres",    "fa5s.cog",            "Paramètres",      False),
-            ("administration","fa5s.user-shield",    "Administration",  False),
-        ]
-
-        layout.addSpacing(8)
-        for menu_id, icon_name, label, dispo in menus_bottom:
-            btn = SidebarButton(
-                icon_name=icon_name,
-                label=label,
-                page_id=menu_id,
+        # === MENU SECONDAIRE (Paramètres / Administration) ===
+        # Réservé à l'Administrateur : un opérateur ne doit ni voir ni pouvoir
+        # atteindre la gestion des comptes, le journal d'audit global, ni les
+        # paramètres qui pilotent le contenu des documents officiels.
+        if UserSession.get_instance().is_admin:
+            # === SÉPARATEUR (clair) ===
+            sep = QFrame()
+            sep.setFrameShape(QFrame.Shape.HLine)
+            sep.setStyleSheet(
+                f"background-color: {SEPARATOR_LIGHT}; max-height: 1px; border: none;"
             )
-            btn.clicked.connect(lambda checked, mid=menu_id: self._on_menu_click(mid))
-            layout.addWidget(btn)
-            self.menu_buttons[menu_id] = btn
+            layout.addWidget(sep)
 
-        layout.addSpacing(8)
+            menus_bottom = [
+                ("parametres",     "fa5s.cog",         "Paramètres"),
+                ("administration", "fa5s.user-shield", "Administration"),
+            ]
+
+            layout.addSpacing(8)
+            for menu_id, icon_name, label in menus_bottom:
+                btn = SidebarButton(
+                    icon_name=icon_name,
+                    label=label,
+                    page_id=menu_id,
+                )
+                btn.clicked.connect(lambda checked, mid=menu_id: self._on_menu_click(mid))
+                layout.addWidget(btn)
+                self.menu_buttons[menu_id] = btn
+
+            layout.addSpacing(8)
 
         # === CARTE PROFIL UTILISATEUR (bas de sidebar) ===
         self.user_card = UserProfileCard()
@@ -336,6 +345,7 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
         if session.is_authenticated:
             self.user_card.set_user(session.nom_complet or session.login, session.role)
         self.user_card.logout_clicked.connect(self._on_logout_click)
+        self.user_card.change_password_clicked.connect(self._on_change_password)
         layout.addWidget(self.user_card)
 
         # === FOOTER DE LA SIDEBAR ===
@@ -465,8 +475,12 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
 
         self.pages["absences"] = AbsencesView()
         self.pages["statistics"] = StatisticsView()
-        self.pages["parametres"] = SettingsView()
-        self.pages["administration"] = AdministrationView()
+
+        # Pages réservées à l'Administrateur : non instanciées pour un opérateur.
+        # Elles sont ainsi absolument inatteignables, et le démarrage est allégé.
+        if UserSession.get_instance().is_admin:
+            self.pages["parametres"] = SettingsView()
+            self.pages["administration"] = AdministrationView()
 
         for page_id, view in self.pages.items():
             self.content_stack.addWidget(view)
@@ -477,6 +491,18 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
 
     # ================================================================
     def _on_menu_click(self, menu_id: str):
+        # Garde défensive : même si un bouton était ajouté par erreur ou si
+        # cette méthode était appelée par un autre chemin (raccourci, signal
+        # du tableau de bord), un non-administrateur est refusé ici.
+        if menu_id in ADMIN_ONLY_PAGES and not UserSession.get_instance().is_admin:
+            QMessageBox.warning(
+                self,
+                "Accès refusé",
+                "<b>Accès réservé à l'Administrateur.</b>"
+                "<br><br>Cette section n'est pas accessible avec votre rôle.",
+            )
+            return
+
         for mid, btn in self.menu_buttons.items():
             btn.setChecked(mid == menu_id)
 
@@ -494,6 +520,18 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
                 "administration": "Administration",
             }
             self.page_title.setText(titles.get(menu_id, ""))
+
+    # ================================================================
+    def _on_change_password(self):
+        """Ouvre la popup de changement du mot de passe personnel.
+
+        Accessible à tous les rôles : chaque utilisateur peut changer son
+        propre mot de passe, mais jamais celui d'un autre ni son rôle.
+        """
+        from src.ui.widgets.change_password_dialog import ChangePasswordDialog
+
+        dialog = ChangePasswordDialog(self)
+        dialog.exec()
 
     # ================================================================
     def _on_logout_click(self):

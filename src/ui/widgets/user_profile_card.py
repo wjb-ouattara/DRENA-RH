@@ -13,6 +13,7 @@ Usage dans main_window.py (_build_sidebar) :
     self.user_card = UserProfileCard()
     self.user_card.set_user("Administrateur", "admin")  # nom, rôle
     self.user_card.logout_clicked.connect(self.logout_requested.emit)
+    self.user_card.change_password_clicked.connect(self._on_change_password)
     sidebar_layout.addWidget(self.user_card)
 
 Supporte le mode compact (sidebar réduite) via `.set_compact(bool)`,
@@ -36,6 +37,7 @@ class UserProfileCard(QWidget):
     """Carte profil utilisateur — bas de sidebar."""
 
     logout_clicked = pyqtSignal()
+    change_password_clicked = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -59,8 +61,8 @@ class UserProfileCard(QWidget):
         self.content = QWidget()
         self.content.setStyleSheet("background: transparent;")
         self.row = QHBoxLayout(self.content)
-        self.row.setContentsMargins(16, 14, 12, 14)
-        self.row.setSpacing(10)
+        self.row.setContentsMargins(14, 14, 8, 14)
+        self.row.setSpacing(8)
 
         # Avatar (initiales sur fond orange doux)
         self.avatar = QLabel("?")
@@ -95,11 +97,31 @@ class UserProfileCard(QWidget):
 
         self.row.addLayout(self.text_col, stretch=1)
 
+        # Bouton « changer mon mot de passe » — accessible à tous les rôles
+        self.password_btn = QPushButton()
+        self.password_btn.setIcon(qta.icon("fa5s.key", color=TEXT_MUTED))
+        self.password_btn.setIconSize(QSize(13, 13))
+        self.password_btn.setFixedSize(26, 26)
+        self.password_btn.setToolTip("Changer mon mot de passe")
+        self.password_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.password_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                border: none;
+                border-radius: 6px;
+            }}
+            QPushButton:hover {{
+                background-color: {ORANGE_SOFT_BG};
+            }}
+        """)
+        self.password_btn.clicked.connect(self.change_password_clicked.emit)
+        self.row.addWidget(self.password_btn)
+
         # Bouton déconnexion
         self.logout_btn = QPushButton()
         self.logout_btn.setIcon(qta.icon("fa5s.sign-out-alt", color=TEXT_MUTED))
         self.logout_btn.setIconSize(QSize(14, 14))
-        self.logout_btn.setFixedSize(30, 30)
+        self.logout_btn.setFixedSize(26, 26)
         self.logout_btn.setToolTip("Se déconnecter")
         self.logout_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.logout_btn.setStyleSheet(f"""
@@ -127,6 +149,9 @@ class UserProfileCard(QWidget):
         self.avatar.setText(initials or "?")
 
         self.name_lbl.setText(self._nom)
+        # Le nom peut dépasser la largeur disponible (deux boutons à droite) :
+        # on l'élide et on expose la valeur complète en infobulle.
+        self.name_lbl.setToolTip(self._nom)
         role_labels = {"admin": "Administrateur", "operateur": "Opérateur"}
         self.role_lbl.setText(role_labels.get(self._role, self._role.title()))
 
@@ -141,12 +166,14 @@ class UserProfileCard(QWidget):
             self.row.setContentsMargins(0, 14, 0, 14)
             self.text_col.itemAt(0).widget().hide()
             self.text_col.itemAt(1).widget().hide()
+            self.password_btn.hide()
             self.logout_btn.hide()
             self.row.setAlignment(self.avatar, Qt.AlignmentFlag.AlignCenter)
             self.avatar.setToolTip(f"{self._nom} — clic droit pour se déconnecter")
         else:
-            self.row.setContentsMargins(16, 14, 12, 14)
+            self.row.setContentsMargins(14, 14, 8, 14)
             self.text_col.itemAt(0).widget().show()
             self.text_col.itemAt(1).widget().show()
+            self.password_btn.show()
             self.logout_btn.show()
             self.avatar.setToolTip("")

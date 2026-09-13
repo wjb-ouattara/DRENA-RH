@@ -8,7 +8,12 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Fichiers .spec generes automatiquement par PyInstaller,
+# SAUF main.spec qui est notre configuration de build maintenue a la main.
+# (Sans cette exception, main.spec disparaissait du depot.)
 *.spec
+!main.spec
 
 # Environnements virtuels
 venv/
@@ -19,6 +24,7 @@ ENV/
 # ===== IDE =====
 .vscode/
 .idea/
+.snowflake/
 *.swp
 *.swo
 *~
@@ -32,6 +38,8 @@ desktop.ini
 # Base de données locale (ne pas committer les données réelles)
 data/*.db
 data/*.db-journal
+data/*.db-wal
+data/*.db-shm
 data/backups/*.db
 
 # Documents générés (sortie de l'app)

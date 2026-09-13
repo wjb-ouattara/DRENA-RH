@@ -13,8 +13,10 @@ import qtawesome as qta
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QFrame, QStackedWidget,
+    QLabel,
 )
 
+from src.services.auth_service import UserSession
 from src.ui.administration.users_view import UsersView
 from src.ui.administration.audit_log_view import AuditLogView
 
@@ -24,7 +26,34 @@ class AdministrationView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Troisième niveau de protection (après le masquage du menu et la garde
+        # de _on_menu_click) : la vue refuse de se construire hors rôle admin.
+        if not UserSession.get_instance().is_admin:
+            self._build_acces_refuse()
+            return
         self._build_ui()
+
+    def _build_acces_refuse(self):
+        """Affiché à la place du contenu si l'utilisateur n'est pas administrateur."""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(12)
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        icone = QLabel()
+        icone.setPixmap(qta.icon("fa5s.lock", color="#D6D3D1").pixmap(QSize(48, 48)))
+        icone.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(icone)
+
+        titre = QLabel("Accès réservé à l'Administrateur")
+        titre.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        titre.setStyleSheet("color: #1C1917; font-size: 15px; font-weight: bold;")
+        layout.addWidget(titre)
+
+        detail = QLabel("Cette section n'est pas accessible avec votre rôle.")
+        detail.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        detail.setStyleSheet("color: #78716C; font-size: 12px;")
+        layout.addWidget(detail)
 
     def _build_ui(self):
         layout = QVBoxLayout(self)

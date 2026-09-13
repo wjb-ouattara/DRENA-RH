@@ -70,33 +70,34 @@ class OrdreMissionTemplate(DocumentTemplate):
 
         elements = []
 
-        # ----- Phrase d'introduction -----
+        # ----- Phrase d'introduction (formule officielle) -----
         elements.append(Paragraph(
             "<b>Le Directeur Régional de l'Éducation Nationale, "
             "de l'Alphabétisation et de l'Enseignement Technique "
-            "de Katiola, donne ordre à :</b>",
+            "de Katiola</b>",
             styles["body"]
         ))
         elements.append(Spacer(1, 0.3 * cm))
 
         # ----- Tableau infos de l'agent missionné -----
+        # Libellés en capitales, conformément au modèle officiel de la DRENAET.
         civilite_agent = _civilite(agent["sexe"], agent["situation_matrimoniale"])
         nom_complet = f"{agent['nom']} {agent['prenoms']}".strip().upper()
 
         agent_fields = [
-            ("M./Mme/Mlle", f"{civilite_agent}  {nom_complet}"),
-            ("Matricule", agent["matricule"]),
-            ("Emploi", agent["emploi"]),
-            ("Fonction", agent["fonction"] or "—"),
-            ("Structure", agent["structure"]),
-            ("Résidence administrative", agent["residence"]),
+            ("DONNE L'ORDRE A", f"{civilite_agent}  {nom_complet}"),
+            ("MATRICULE", agent["matricule"]),
+            ("EMPLOI", agent["emploi"]),
+            ("FONCTION", agent["fonction"] or ""),
+            ("STRUCTURE", agent["structure"]),
+            ("RESIDENCE", agent["residence"]),
         ]
         elements.append(self._render_info_table(agent_fields, styles))
         elements.append(Spacer(1, 0.3 * cm))
 
         # ----- Phrase de mission -----
         elements.append(Paragraph(
-            "De se rendre en mission dans les conditions ci-après précisées :",
+            "Dans les conditions ci-après précisées :",
             styles["body"]
         ))
         elements.append(Spacer(1, 0.25 * cm))
@@ -105,13 +106,6 @@ class OrdreMissionTemplate(DocumentTemplate):
         date_depart = params.get("date_depart")
         date_retour = params.get("date_retour")
 
-        if date_depart and date_retour and date_depart == date_retour:
-            periode_str = _format_date_short(date_depart)
-        elif date_depart and date_retour:
-            periode_str = f"du {_format_date_short(date_depart)} au {_format_date_short(date_retour)}"
-        else:
-            periode_str = ""
-
         # Hébergement et repas
         hebergement = params.get("hebergement_assure", False)
         repas = params.get("repas_fourni", False)
@@ -119,17 +113,18 @@ class OrdreMissionTemplate(DocumentTemplate):
         repas_str = "OUI" if repas else "NON"
 
         mission_fields = [
-            ("Destination", params.get("destination", "")),
-            ("Objet de la mission", params.get("objet", "")),
-            ("Période", periode_str),
-            ("Moyen de déplacement", params.get("moyen_deplacement", "")),
-            ("Hébergement assuré", hebergement_str),
-            ("Repas fourni", repas_str),
+            ("DE SE RENDRE", params.get("destination", "")),
+            ("OBJET DE LA MISSION", params.get("objet", "")),
+            ("DATE DE DEPART", _format_date_short(date_depart) if date_depart else ""),
+            ("DATE DE RETOUR", _format_date_short(date_retour) if date_retour else ""),
+            ("MOYEN DE DEPLACEMENT", params.get("moyen_deplacement", "")),
+            ("HEBERGEMENT ASSURE", hebergement_str),
+            ("REPAS FOURNI", repas_str),
         ]
 
         # Imputation budgétaire (optionnel)
         if params.get("imputation"):
-            mission_fields.append(("Imputation budgétaire", params.get("imputation", "")))
+            mission_fields.append(("IMPUTATION BUDGETAIRE", params.get("imputation", "")))
 
         elements.append(self._render_info_table(mission_fields, styles))
         elements.append(Spacer(1, 0.4 * cm))
@@ -169,7 +164,7 @@ class OrdreMissionTemplate(DocumentTemplate):
                 [Paragraph(f"Fait à Katiola, le {today_str}", right_style)],
                 [Paragraph(f"<b>Le {titre_signataire}</b>", right_bold)],
             ],
-            colWidths=[17 * cm],
+            colWidths=[8.6 * cm],
         )
         dir_table.setStyle(TableStyle([
             ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
@@ -183,7 +178,7 @@ class OrdreMissionTemplate(DocumentTemplate):
 
     # ====================================================================
     def build_ampliations(self, context: dict, styles: dict) -> list:
-        """Bloc Ampliations en bas à gauche + footer DRENAET officiel."""
+        """Bloc Ampliations en bas à gauche."""
         elements = []
 
         amp_title_style = ParagraphStyle(
@@ -212,24 +207,8 @@ class OrdreMissionTemplate(DocumentTemplate):
         ]))
         elements.append(amp_table)
 
-        # ----- Footer officiel DRENAET (BP, Tél, Email) -----
-        elements.append(Spacer(1, 0.5 * cm))
-        info = settings.DRENAET_INFO
-
-        official_footer_style = ParagraphStyle(
-            "official_footer", fontName="Helvetica-Oblique", fontSize=8,
-            alignment=TA_CENTER, leading=11,
-            textColor=colors.HexColor("#4338CA"),
-        )
-
-        footer_text = (
-            f"<i><b>Direction Régionale de l'Éducation Nationale, de l'Alphabétisation "
-            f"et de l'Enseignement Technique de Katiola</b></i><br/>"
-            f"<i>{info['bp']}  •  Tél. : {info['telephone']}  •  "
-            f"E-mail : {info['email']}</i>"
-        )
-        elements.append(Paragraph(footer_text, official_footer_style))
-
+        # Les coordonnées officielles de la DRENAET sont désormais portées par
+        # le pied de page de chaque page, dessiné par le générateur.
         return elements
 
     # ====================================================================
@@ -243,7 +222,9 @@ class OrdreMissionTemplate(DocumentTemplate):
                 Paragraph(f"<b>{value}</b>" if value else "", styles["value"]),
             ])
 
-        tbl = Table(rows, colWidths=[4.5 * cm, 0.4 * cm, 12 * cm])
+        # 5,6 cm pour accueillir les libellés en capitales les plus longs
+        # (MOYEN DE DEPLACEMENT, IMPUTATION BUDGETAIRE) sans repli de ligne.
+        tbl = Table(rows, colWidths=[5.6 * cm, 0.4 * cm, 10.9 * cm])
         tbl.setStyle(TableStyle([
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("LEFTPADDING", (0, 0), (-1, -1), 4),

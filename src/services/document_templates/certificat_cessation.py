@@ -79,18 +79,18 @@ class CertificatCessationTemplate(DocumentTemplate):
             (titre, nom_complet),
             ("Matricule", agent["matricule"]),
             ("Emploi", agent["emploi"]),
-            ("Grade", agent["grade"] or "—"),
-            ("Fonction", agent["fonction"] or "—"),
+            ("Grade", agent["grade"] or ""),
+            ("Fonction", agent["fonction"] or ""),
         ]
         elements.append(self._render_info_table(agent_fields, styles))
         elements.append(Spacer(1, 0.3 * cm))
 
         # Phrase de cessation
-        lieu = params.get("structure_precedente", agent["structure"] or "—")
-        qualite = params.get("qualite", agent["fonction"] or agent["emploi"] or "—")
+        lieu = params.get("structure_precedente", agent["structure"] or "")
+        qualite = params.get("qualite", agent["fonction"] or agent["emploi"] or "")
         date_cessation = params.get("date_cessation")
-        date_cessation_str = _format_date_short(date_cessation) if date_cessation else "—"
-        motif = params.get("motif", "—")
+        date_cessation_str = _format_date_short(date_cessation) if date_cessation else ""
+        motif = params.get("motif", "")
 
         elements.append(Paragraph(
             f"A cessé ses fonctions au <b>{lieu}</b>, "
@@ -127,7 +127,7 @@ class CertificatCessationTemplate(DocumentTemplate):
         dir_table = Table([
             [Paragraph(f"Fait à Katiola, le {today_str}", right_style)],
             [Paragraph(f"<b>Le {titre_signataire}</b>", right_bold)],
-        ], colWidths=[17 * cm])
+        ], colWidths=[8.6 * cm])
         dir_table.setStyle(TableStyle([
             ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -135,32 +135,6 @@ class CertificatCessationTemplate(DocumentTemplate):
             ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
         ]))
         elements.append(dir_table)
-        return elements
-
-    # ====================================================================
-    def build_ampliations(self, context: dict, styles: dict) -> list:
-        elements = []
-        info = settings.DRENAET_INFO
-
-        sep_line = Table([[""]], colWidths=[8 * cm], rowHeights=[0.1 * cm])
-        sep_line.setStyle(TableStyle([
-            ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#4338CA")),
-        ]))
-        sep_line.hAlign = "CENTER"
-        elements.append(sep_line)
-        elements.append(Spacer(1, 0.2 * cm))
-
-        official_footer_style = ParagraphStyle(
-            "official_footer", fontName="Helvetica-Oblique", fontSize=8,
-            alignment=TA_CENTER, leading=11, textColor=colors.HexColor("#4338CA"),
-        )
-        footer_text = (
-            f"<i><b>Direction Régionale de l'Éducation Nationale, de l'Alphabétisation "
-            f"et de l'Enseignement Technique de Katiola</b></i><br/>"
-            f"<i>{info['bp']}  •  Tél. : {info['telephone']}  •  "
-            f"E-mail : {info['email']}</i>"
-        )
-        elements.append(Paragraph(footer_text, official_footer_style))
         return elements
 
     # ====================================================================

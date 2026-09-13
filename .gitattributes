@@ -1,0 +1,31 @@
+# Normalisation des fins de ligne et protection des fichiers binaires.
+#
+# Sans ces regles, Git traitait les PDF et les classeurs Excel comme du texte
+# et convertissait leurs octets LF en CRLF a la restitution : les fichiers
+# ressortaient corrompus sur une autre machine.
+
+# Par defaut, Git detecte le type et normalise les fichiers texte en LF.
+* text=auto
+
+# Sources et fichiers de configuration : toujours en LF dans le depot.
+*.py    text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.qss   text eol=lf
+*.spec  text eol=lf
+*.yml   text eol=lf
+*.json  text eol=lf
+
+# Scripts PowerShell : CRLF, c'est la convention Windows.
+*.ps1   text eol=crlf
+
+# Binaires : aucune conversion.
+*.pdf   binary
+*.xlsx  binary
+*.xls   binary
+*.docx  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+*.db    binary

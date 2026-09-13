@@ -124,7 +124,7 @@ class AutorisationAbsenceTemplate(DocumentTemplate):
             ("M./Mme/Mlle", f"{civilite_agent}  {nom_complet}"),
             ("Matricule", agent["matricule"]),
             ("Emploi", agent["emploi"]),
-            ("Fonction", agent["fonction"] or "—"),
+            ("Fonction", agent["fonction"] or ""),
             ("Structure", agent["structure"]),
         ]
         elements.append(self._render_info_table(agent_fields, styles))
@@ -145,9 +145,9 @@ class AutorisationAbsenceTemplate(DocumentTemplate):
         # "pour le" : si 1 seul jour (debut = fin), sinon "du..au.."
         if date_debut == date_fin and date_debut:
             pour_le = _format_date_long(date_debut)
-            allant_du = "—"
+            allant_du = ""
         else:
-            pour_le = "—"
+            pour_le = ""
             if date_debut and date_fin:
                 allant_du = f"du {_format_date_short(date_debut)} au {_format_date_short(date_fin)}"
             else:
@@ -177,7 +177,7 @@ class AutorisationAbsenceTemplate(DocumentTemplate):
                 ("M./Mme/Mlle", f"{interim_civ}  {interim_nom}"),
                 ("Matricule", interim.get("matricule", "")),
                 ("Emploi", interim.get("emploi", "")),
-                ("Fonction", interim.get("fonction", "") or "—"),
+                ("Fonction", interim.get("fonction", "") or ""),
                 ("Structure", interim.get("structure", "")),
             ]
             elements.append(self._render_info_table(interim_fields, styles))
@@ -266,7 +266,7 @@ class AutorisationAbsenceTemplate(DocumentTemplate):
                 ],
             ],
             colWidths=[4.8 * cm, 4.8 * cm, 7.4 * cm],
-            rowHeights=[1.2 * cm, 2.5 * cm],
+            rowHeights=[1.0 * cm, 1.7 * cm],
         )
         sig_table.setStyle(TableStyle([
             ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor("#000000")),
@@ -313,7 +313,7 @@ class AutorisationAbsenceTemplate(DocumentTemplate):
                 [Paragraph(f"Katiola, le {today_str}", right_style)],
                 [Paragraph("<b>Le Directeur Régional</b>", right_bold)],
             ],
-            colWidths=[17 * cm],
+            colWidths=[8.6 * cm],
         )
         dir_table.setStyle(TableStyle([
             ("ALIGN", (0, 0), (-1, -1), "RIGHT"),

@@ -310,7 +310,7 @@ class DocumentsView(QWidget):
 
         subtitle = QLabel(
             "Générez en quelques clics les documents administratifs officiels. "
-            "Chaque document est automatiquement numéroté, sécurisé par QR code "
+            "Chaque document est automatiquement numéroté, enregistré "
             "et archivé dans la base."
         )
         subtitle.setStyleSheet("color: #FFFFFF; font-size: 12px;")

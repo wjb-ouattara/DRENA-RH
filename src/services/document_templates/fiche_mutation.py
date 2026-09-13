@@ -6,7 +6,7 @@ Document moderne style "Fiche d'inscription" avec sections bandeau gris.
 Inspiré du modèle SYGMUTE (mena-sygmute.com) du Ministère.
 
 ⚠️ Différence notable : pas de photo (comme demandé par le client),
-juste le QR code pour authentification (déjà dans le footer du moteur).
+juste le pied de page officiel (déjà dessiné par le moteur).
 
 Structure :
 1. Bandeau gris "INFORMATIONS PERSONNELLES" + tableau 2 colonnes
@@ -28,7 +28,8 @@ from src.services.document_generator import DocumentTemplate
 
 def _format_date_short(d) -> str:
     if not d:
-        return "—"
+        # Champ non renseigne : on laisse vide, comme le format de reference.
+        return ""
     if isinstance(d, str):
         try:
             d = datetime.fromisoformat(d).date()
@@ -75,10 +76,10 @@ class FicheMutationTemplate(DocumentTemplate):
             ("Genre", _genre(agent["sexe"])),
             ("Nom & Prénoms", nom_complet),
             ("Date de naissance", _format_date_short(agent["date_naissance"])),
-            ("Lieu de naissance", agent["lieu_naissance"] or "—"),
-            ("Situation matrimoniale", (agent["situation_matrimoniale"] or "—").upper()),
-            ("Cellulaire", agent["telephone"] or "—"),
-            ("Email", agent["email"] or "—"),
+            ("Lieu de naissance", agent["lieu_naissance"] or ""),
+            ("Situation matrimoniale", (agent["situation_matrimoniale"] or "").upper()),
+            ("Cellulaire", agent["telephone"] or ""),
+            ("Email", agent["email"] or ""),
         ]
         elements.append(self._render_info_table(infos_perso, styles))
         elements.append(Spacer(1, 0.4 * cm))
@@ -91,10 +92,10 @@ class FicheMutationTemplate(DocumentTemplate):
 
         infos_pro = [
             ("DRENAET", "DRENAET KATIOLA"),
-            ("Structure actuelle", agent["structure"] or "—"),
+            ("Structure actuelle", agent["structure"] or ""),
             ("Emploi", (agent["emploi"] or "").upper()),
-            ("Grade", agent["grade"] or "—"),
-            ("Fonction actuelle", (agent["fonction"] or "—").upper()),
+            ("Grade", agent["grade"] or ""),
+            ("Fonction actuelle", (agent["fonction"] or "").upper()),
             ("Date d'entrée à la Fonction Publique",
              _format_date_short(params.get("date_entree_fp"))),
             ("Date d'entrée à la DRENAET",
@@ -105,7 +106,7 @@ class FicheMutationTemplate(DocumentTemplate):
              _format_date_short(params.get("date_retraite"))),
         ]
         elements.append(self._render_info_table(infos_pro, styles))
-        elements.append(Spacer(1, 0.4 * cm))
+        elements.append(Spacer(1, 0.3 * cm))
 
         # ============================================================
         # SECTION 3 : LISTE DES VŒUX
@@ -122,19 +123,22 @@ class FicheMutationTemplate(DocumentTemplate):
 
     # ====================================================================
     def _section_band(self, title: str) -> Table:
-        """Crée un bandeau gris pour titre de section (style officiel SYGMUTE)."""
+        """Bandeau gris de titre de section, conforme au format officiel."""
         section_style = ParagraphStyle(
             "section_band", fontName="Helvetica-Bold", fontSize=10,
             textColor=colors.HexColor("#FFFFFF"),
             alignment=TA_LEFT, leading=14,
         )
+        # Le bandeau s'aligne sur les marges du texte, comme le bandeau de
+        # titre : ni l'un ni l'autre ne doit occuper toute la largeur de la
+        # feuille.
         tbl = Table(
             [[Paragraph(f"  <b>{title}</b>", section_style)]],
-            colWidths=[16 * cm],
-            rowHeights=[0.65 * cm],
+            colWidths=[17 * cm],
+            rowHeights=[0.62 * cm],
         )
         tbl.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#6B7280")),
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#7F7F7F")),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("LEFTPADDING", (0, 0), (-1, -1), 4),
         ]))
@@ -156,7 +160,7 @@ class FicheMutationTemplate(DocumentTemplate):
                 str(value) if value else "",
             ])
 
-        tbl = Table(rows, colWidths=[6.8 * cm, 0.4 * cm, 8.8 * cm])
+        tbl = Table(rows, colWidths=[6.8 * cm, 0.4 * cm, 9.8 * cm])
         tbl.setStyle(TableStyle([
             # Police pour tout le tableau
             ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
@@ -164,7 +168,7 @@ class FicheMutationTemplate(DocumentTemplate):
             ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#1F2937")),
             # Label en bold (colonne 0)
             ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-            ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#1E1B4B")),
+            ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#000000")),
             # Valeur en bold (colonne 2)
             ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
             # Alignements et paddings
@@ -172,8 +176,10 @@ class FicheMutationTemplate(DocumentTemplate):
             ("ALIGN", (0, 0), (-1, -1), "LEFT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 6),
             ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-            ("TOPPADDING", (0, 0), (-1, -1), 5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+            # Interlignes resserrés : la fiche compte 16 lignes d'informations
+            # plus 3 vœux, et doit tenir sur une seule page.
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
             ("LINEBELOW", (0, 0), (-1, -2), 0.3, colors.HexColor("#E5E7EB")),
         ]))
         return tbl
@@ -181,88 +187,54 @@ class FicheMutationTemplate(DocumentTemplate):
     # ====================================================================
     def _render_voeux_table(self, voeux: list) -> Table:
         """
-        Tableau des vœux : N° | DRENAET souhaitée | IEPP souhaitée
-        voeux = [{"drenaet": "...", "iepp": "..."}, ...]
+        Tableau des vœux : numéro, DRENAET souhaitée, IEPP souhaitée.
+
+        Pas de ligne d'en-tête : le format de référence n'en comporte pas, le
+        bandeau gris de section joue ce rôle. Les lignes sans vœu renseigné
+        restent vides plutôt que d'afficher un tiret.
         """
-        # En-tête
-        header_style = ParagraphStyle(
-            "voeux_header", fontName="Helvetica-Bold", fontSize=10,
-            textColor=colors.HexColor("#FFFFFF"),
-            alignment=TA_CENTER, leading=12,
-        )
         cell_style = ParagraphStyle(
             "voeux_cell", fontName="Helvetica-Bold", fontSize=10,
             textColor=colors.HexColor("#000000"),
             alignment=TA_LEFT, leading=12,
         )
         num_style = ParagraphStyle(
-            "voeux_num", fontName="Helvetica-Bold", fontSize=10,
-            textColor=colors.HexColor("#1E1B4B"),
-            alignment=TA_CENTER, leading=12,
+            "voeux_num", fontName="Helvetica", fontSize=10,
+            textColor=colors.HexColor("#000000"),
+            alignment=TA_LEFT, leading=12,
         )
 
-        rows = [
-            [
-                Paragraph("<b>N°</b>", header_style),
-                Paragraph("<b>DRENAET souhaitée</b>", header_style),
-                Paragraph("<b>IEPP souhaitée</b>", header_style),
-            ]
-        ]
-
-        # Lignes de vœux (3 maximum, on remplit avec — si vide)
+        rows = []
         for i in range(3):
             if i < len(voeux):
                 v = voeux[i]
-                drenaet = v.get("drenaet", "—") or "—"
-                iepp = v.get("iepp", "—") or "—"
+                drenaet = (v.get("drenaet") or "").upper()
+                iepp = (v.get("iepp") or "").upper()
             else:
-                drenaet = "—"
-                iepp = "—"
+                drenaet = ""
+                iepp = ""
 
             rows.append([
                 Paragraph(str(i + 1), num_style),
-                Paragraph(drenaet.upper(), cell_style),
-                Paragraph(iepp.upper(), cell_style),
+                Paragraph(drenaet, cell_style),
+                Paragraph(iepp, cell_style),
             ])
 
-        tbl = Table(rows, colWidths=[1.5 * cm, 7.5 * cm, 7 * cm])
+        tbl = Table(rows, colWidths=[6.0 * cm, 5.6 * cm, 5.4 * cm])
         tbl.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#6B7280")),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ("ALIGN", (0, 0), (0, -1), "CENTER"),
             ("LEFTPADDING", (0, 0), (-1, -1), 8),
             ("RIGHTPADDING", (0, 0), (-1, -1), 8),
             ("TOPPADDING", (0, 0), (-1, -1), 5),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
-            ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#D1D5DB")),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#FFFFFF")),
-            ("BACKGROUND", (0, 2), (-1, 2), colors.HexColor("#F3F4F6")),  # ligne 2 grisée
+            # Alternance de fonds gris très clairs, comme le modèle.
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E9E9E9")),
+            ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#F4F4F4")),
+            ("BACKGROUND", (0, 2), (-1, 2), colors.HexColor("#C9C9C9")),
         ]))
         return tbl
 
     # ====================================================================
-    def build_ampliations(self, context: dict, styles: dict) -> list:
-        """Footer officiel DRENAET (BP, Tél, Email)."""
-        elements = []
-        info = settings.DRENAET_INFO
-
-        sep_line = Table([[""]], colWidths=[8 * cm], rowHeights=[0.1 * cm])
-        sep_line.setStyle(TableStyle([
-            ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#4338CA")),
-        ]))
-        sep_line.hAlign = "CENTER"
-        elements.append(sep_line)
-        elements.append(Spacer(1, 0.2 * cm))
-
-        official_footer_style = ParagraphStyle(
-            "official_footer", fontName="Helvetica-Oblique", fontSize=8,
-            alignment=TA_CENTER, leading=11, textColor=colors.HexColor("#4338CA"),
-        )
-        footer_text = (
-            f"<i><b>Direction Régionale de l'Éducation Nationale, de l'Alphabétisation "
-            f"et de l'Enseignement Technique de Katiola</b></i><br/>"
-            f"<i>{info['bp']}  •  Tél. : {info['telephone']}  •  "
-            f"E-mail : {info['email']}</i>"
-        )
-        elements.append(Paragraph(footer_text, official_footer_style))
-        return elements
+    # Aucune zone de cloture propre a la fiche : les coordonnees
+    # officielles de la DRENAET sont portees par le pied de page de
+    # chaque page, dessine par le generateur.

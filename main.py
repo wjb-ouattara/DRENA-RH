@@ -16,7 +16,6 @@ Puis affiche l'écran de login.
 import sys
 import logging
 from pathlib import Path
-from src.services.settings_service import SettingsService
 
 # S'assurer que le dossier racine est dans le PYTHONPATH
 ROOT_DIR = Path(__file__).resolve().parent
@@ -30,9 +29,15 @@ from src.models import init_db, get_session, Utilisateur, Personnel, Structure
 # LOGGING
 # ============================================================
 def setup_logging():
-    """Configure le système de logs."""
-    log_dir = ROOT_DIR / "logs"
-    log_dir.mkdir(exist_ok=True)
+    """
+    Configure le système de logs.
+
+    Écrit dans settings.LOG_DIR (dossier de données utilisateur) et non à côté
+    du programme : en exécutable onefile, le dossier du programme est un
+    dossier temporaire effacé à la fermeture.
+    """
+    log_dir = settings.LOG_DIR
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -54,8 +59,10 @@ def initialize_app():
     logger.info(f"  Démarrage de {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info("=" * 60)
 
-    # Créer le schéma (idempotent)
-    SettingsService.sync_to_runtime_config()
+    # Créer le schéma AVANT toute lecture en base.
+    # L'ordre importe : sync_to_runtime_config() lit la table `settings`, qui
+    # n'existe qu'après init_db(). L'inverser provoquait une erreur
+    # « no such table: settings » sur toute base neuve.
     init_db()
     logger.info("✓ Schéma BD vérifié")
 
@@ -76,6 +83,12 @@ def initialize_app():
         result = seed_all(nb_agents=80, force=False)
         logger.info(f"✓ Seed terminé : {result}")
         logger.warning("⚠ COMPTES PAR DÉFAUT CRÉÉS — Voir les comptes dans la doc")
+
+    # Charger les paramètres personnalisés en mémoire, maintenant que le
+    # schéma existe et que les données initiales sont en place.
+    from src.services.settings_service import SettingsService
+    SettingsService.sync_to_runtime_config()
+    logger.info("✓ Paramètres chargés")
 
     return True
 
@@ -101,7 +114,7 @@ def main():
     except Exception as e:
         logging.exception(f"Erreur fatale : {e}")
         print(f"\n❌ ERREUR FATALE : {e}")
-        print("   Voir le fichier logs/app.log pour les détails")
+        print(f"   Voir le fichier {settings.LOG_DIR / 'app.log'} pour les détails")
         return 1
 
 

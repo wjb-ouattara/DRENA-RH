@@ -83,15 +83,15 @@ class CertificatPriseServiceTemplate(DocumentTemplate):
         elements.append(Spacer(1, 0.3 * cm))
 
         # Phrase officielle avec Arrêté
-        num_arrete = params.get("num_arrete", "—")
+        num_arrete = params.get("num_arrete", "")
         date_arrete = params.get("date_arrete")
-        date_arrete_str = _format_date_short(date_arrete) if date_arrete else "—"
+        date_arrete_str = _format_date_short(date_arrete) if date_arrete else ""
 
-        lieu = params.get("lieu_prise_service", agent["structure"] or "—")
-        qualite = params.get("qualite", agent["fonction"] or agent["emploi"] or "—")
+        lieu = params.get("lieu_prise_service", agent["structure"] or "")
+        qualite = params.get("qualite", agent["fonction"] or agent["emploi"] or "")
 
         date_prise = params.get("date_prise_service") or agent["date_prise_service"]
-        date_prise_str = _format_date_short(date_prise) if date_prise else "—"
+        date_prise_str = _format_date_short(date_prise) if date_prise else ""
 
         elements.append(Paragraph(
             f"Nommé(e) par Arrêté <b>N° {num_arrete}</b> du "
@@ -128,7 +128,7 @@ class CertificatPriseServiceTemplate(DocumentTemplate):
         dir_table = Table([
             [Paragraph(f"Fait à Katiola, le {today_str}", right_style)],
             [Paragraph(f"<b>Le {titre_signataire}</b>", right_bold)],
-        ], colWidths=[17 * cm])
+        ], colWidths=[8.6 * cm])
         dir_table.setStyle(TableStyle([
             ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -136,32 +136,6 @@ class CertificatPriseServiceTemplate(DocumentTemplate):
             ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
         ]))
         elements.append(dir_table)
-        return elements
-
-    # ====================================================================
-    def build_ampliations(self, context: dict, styles: dict) -> list:
-        elements = []
-        info = settings.DRENAET_INFO
-
-        sep_line = Table([[""]], colWidths=[8 * cm], rowHeights=[0.1 * cm])
-        sep_line.setStyle(TableStyle([
-            ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#4338CA")),
-        ]))
-        sep_line.hAlign = "CENTER"
-        elements.append(sep_line)
-        elements.append(Spacer(1, 0.2 * cm))
-
-        official_footer_style = ParagraphStyle(
-            "official_footer", fontName="Helvetica-Oblique", fontSize=8,
-            alignment=TA_CENTER, leading=11, textColor=colors.HexColor("#4338CA"),
-        )
-        footer_text = (
-            f"<i><b>Direction Régionale de l'Éducation Nationale, de l'Alphabétisation "
-            f"et de l'Enseignement Technique de Katiola</b></i><br/>"
-            f"<i>{info['bp']}  •  Tél. : {info['telephone']}  •  "
-            f"E-mail : {info['email']}</i>"
-        )
-        elements.append(Paragraph(footer_text, official_footer_style))
         return elements
 
     # ====================================================================

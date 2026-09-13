@@ -1,6 +1,6 @@
 # ============================================================
 # DRENAET-RH - Dépendances Python
-# Compatible Python 3.11+
+# Compatible Python 3.11+ (testé sur 3.12)
 # ============================================================
 
 # --- Base de données ---
@@ -9,22 +9,34 @@ SQLAlchemy==2.0.25
 # --- Sécurité ---
 bcrypt==4.1.2
 
-# --- Interface graphique PyQt6 (Sprint 2) ---
+# --- Interface graphique PyQt6 ---
+# ⚠ Les trois lignes doivent rester alignées : installer PyQt6 6.6.1 sans
+#   épingler PyQt6-Qt6 fait remonter Qt à une version incompatible et
+#   provoque « ImportError: DLL load failed while importing QtCore ».
 PyQt6==6.6.1
+PyQt6-Qt6==6.6.1
+PyQt6-sip==13.6.0
 qtawesome==1.3.0
 
-# --- Documents (Sprints 5+) ---
-python-docx==1.1.0
-docx2pdf==0.1.8
+# --- Génération des documents PDF officiels ---
+# qrcode et python-barcode ont été retirés : le pied de page officiel de la
+# DRENAET ne comporte ni QR code ni code-barres.
+reportlab==4.0.9
 
-# --- Statistiques (Sprint 7) ---
-matplotlib==3.8.2
-pandas==2.1.4
+# --- Import Excel ---
+openpyxl==3.1.2
 
 # --- Utilitaires ---
 Pillow==10.2.0
 python-dateutil==2.8.2
-openpyxl==3.1.2
 
-# --- Distribution (Sprint 8) ---
+# --- Distribution ---
 pyinstaller==6.3.0
+
+# ============================================================
+# Retirés : matplotlib, pandas, python-docx, docx2pdf
+# Aucun fichier du projet ne les importe (les graphiques du module
+# Statistiques sont dessinés avec QPainter, voir
+# src/ui/widgets/chart_widgets.py). Les conserver alourdissait
+# l'exécutable de plus de 100 Mo sans aucun usage.
+# ============================================================

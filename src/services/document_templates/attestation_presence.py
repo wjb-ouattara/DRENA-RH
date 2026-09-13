@@ -79,8 +79,8 @@ class AttestationPresenceTemplate(DocumentTemplate):
             (titre, nom_complet),
             ("Matricule", agent["matricule"]),
             ("Emploi", agent["emploi"]),
-            ("Grade", agent["grade"] or "—"),
-            ("Fonction", agent["fonction"] or "—"),
+            ("Grade", agent["grade"] or ""),
+            ("Fonction", agent["fonction"] or ""),
             ("Est en service au", agent["structure"]),
         ]
         elements.append(self._render_info_table(agent_fields, styles))
@@ -89,7 +89,7 @@ class AttestationPresenceTemplate(DocumentTemplate):
         # Phrase certificative
         pronom = _pronom(agent["sexe"])
         date_prise = agent["date_prise_service"]
-        date_prise_str = _format_date_short(date_prise) if date_prise else "—"
+        date_prise_str = _format_date_short(date_prise) if date_prise else ""
 
         elements.append(Paragraph(
             f"Où <b>{pronom}</b> assure régulièrement ses fonctions "
@@ -98,20 +98,12 @@ class AttestationPresenceTemplate(DocumentTemplate):
         ))
         elements.append(Spacer(1, 0.3 * cm))
 
-        # But (optionnel)
-        but = params.get("but")
-        if but:
-            elements.append(Paragraph(
-                f"La présente attestation est délivrée à l'intéressé(e) "
-                f"pour servir et valoir <b>{but}</b>.",
-                styles["body"]
-            ))
-        else:
-            elements.append(Paragraph(
-                "En foi de quoi, la présente attestation lui est délivrée "
-                "pour servir et valoir ce que de droit.",
-                styles["body"]
-            ))
+        # Formule de clôture officielle (aucun « but » dans le modèle réel)
+        elements.append(Paragraph(
+            "En foi de quoi, la présente attestation lui est délivrée "
+            "pour servir et valoir ce que de droit.",
+            styles["body"]
+        ))
 
         return elements
 
@@ -132,7 +124,7 @@ class AttestationPresenceTemplate(DocumentTemplate):
         dir_table = Table([
             [Paragraph(f"Fait à Katiola, le {today_str}", right_style)],
             [Paragraph(f"<b>Le {titre_signataire}</b>", right_bold)],
-        ], colWidths=[17 * cm])
+        ], colWidths=[8.6 * cm])
         dir_table.setStyle(TableStyle([
             ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -140,32 +132,6 @@ class AttestationPresenceTemplate(DocumentTemplate):
             ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
         ]))
         elements.append(dir_table)
-        return elements
-
-    # ====================================================================
-    def build_ampliations(self, context: dict, styles: dict) -> list:
-        elements = []
-        info = settings.DRENAET_INFO
-
-        sep_line = Table([[""]], colWidths=[8 * cm], rowHeights=[0.1 * cm])
-        sep_line.setStyle(TableStyle([
-            ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#4338CA")),
-        ]))
-        sep_line.hAlign = "CENTER"
-        elements.append(sep_line)
-        elements.append(Spacer(1, 0.2 * cm))
-
-        official_footer_style = ParagraphStyle(
-            "official_footer", fontName="Helvetica-Oblique", fontSize=8,
-            alignment=TA_CENTER, leading=11, textColor=colors.HexColor("#4338CA"),
-        )
-        footer_text = (
-            f"<i><b>Direction Régionale de l'Éducation Nationale, de l'Alphabétisation "
-            f"et de l'Enseignement Technique de Katiola</b></i><br/>"
-            f"<i>{info['bp']}  •  Tél. : {info['telephone']}  •  "
-            f"E-mail : {info['email']}</i>"
-        )
-        elements.append(Paragraph(footer_text, official_footer_style))
         return elements
 
     # ====================================================================

@@ -78,7 +78,7 @@ class TitreCongesTemplate(DocumentTemplate):
             (titre, nom_complet),
             ("Matricule", agent["matricule"]),
             ("Emploi", agent["emploi"]),
-            ("Fonction", agent["fonction"] or "—"),
+            ("Fonction", agent["fonction"] or ""),
             ("Structure", agent["structure"]),
         ]
         elements.append(self._render_info_table(agent_fields, styles))
@@ -87,10 +87,10 @@ class TitreCongesTemplate(DocumentTemplate):
         # Phrase de période + destination
         date_debut = params.get("date_debut")
         date_fin = params.get("date_fin")
-        destination = params.get("destination", "—")
+        destination = params.get("destination", "")
 
-        date_debut_str = _format_date_short(date_debut) if date_debut else "—"
-        date_fin_str = _format_date_short(date_fin) if date_fin else "—"
+        date_debut_str = _format_date_short(date_debut) if date_debut else ""
+        date_fin_str = _format_date_short(date_fin) if date_fin else ""
 
         elements.append(Paragraph(
             f"Sur la période du <b>{date_debut_str}</b> "
@@ -126,7 +126,7 @@ class TitreCongesTemplate(DocumentTemplate):
         dir_table = Table([
             [Paragraph(f"Fait à Katiola, le {today_str}", right_style)],
             [Paragraph(f"<b>Le {titre_signataire}</b>", right_bold)],
-        ], colWidths=[17 * cm])
+        ], colWidths=[8.6 * cm])
         dir_table.setStyle(TableStyle([
             ("ALIGN", (0, 0), (-1, -1), "RIGHT"),
             ("LEFTPADDING", (0, 0), (-1, -1), 0),
@@ -134,32 +134,6 @@ class TitreCongesTemplate(DocumentTemplate):
             ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
         ]))
         elements.append(dir_table)
-        return elements
-
-    # ====================================================================
-    def build_ampliations(self, context: dict, styles: dict) -> list:
-        elements = []
-        info = settings.DRENAET_INFO
-
-        sep_line = Table([[""]], colWidths=[8 * cm], rowHeights=[0.1 * cm])
-        sep_line.setStyle(TableStyle([
-            ("LINEABOVE", (0, 0), (-1, 0), 0.5, colors.HexColor("#4338CA")),
-        ]))
-        sep_line.hAlign = "CENTER"
-        elements.append(sep_line)
-        elements.append(Spacer(1, 0.2 * cm))
-
-        official_footer_style = ParagraphStyle(
-            "official_footer", fontName="Helvetica-Oblique", fontSize=8,
-            alignment=TA_CENTER, leading=11, textColor=colors.HexColor("#4338CA"),
-        )
-        footer_text = (
-            f"<i><b>Direction Régionale de l'Éducation Nationale, de l'Alphabétisation "
-            f"et de l'Enseignement Technique de Katiola</b></i><br/>"
-            f"<i>{info['bp']}  •  Tél. : {info['telephone']}  •  "
-            f"E-mail : {info['email']}</i>"
-        )
-        elements.append(Paragraph(footer_text, official_footer_style))
         return elements
 
     # ====================================================================

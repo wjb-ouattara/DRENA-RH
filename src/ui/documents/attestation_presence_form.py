@@ -68,12 +68,6 @@ class AttestationPresenceForm(QWidget):
         self.agent_card = self._build_agent_search_card()
         layout.addWidget(self.agent_card)
 
-        # Étape 2 : But (optionnel)
-        layout.addWidget(StepLabel(2, "BUT DE L'ATTESTATION (optionnel)",
-            "À quoi servira cette attestation ? (laisser vide → 'ce que de droit')",
-            color="#06B6D4"))
-        layout.addWidget(self._build_but_card())
-
         # Bouton Générer
         gen_layout = QHBoxLayout()
         gen_layout.addStretch()
@@ -195,33 +189,6 @@ class AttestationPresenceForm(QWidget):
         mat_input.returnPressed.connect(lambda: self._search_agent(card))
         return card
 
-    def _build_but_card(self) -> QFrame:
-        card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background-color: #FFFFFF;
-                border: 1px solid #E2E8F0;
-                border-radius: 12px;
-            }
-            QLineEdit {
-                background-color: #FFFFFF; border: 1.5px solid #E2E8F0;
-                border-radius: 6px; padding: 6px 10px;
-                font-size: 12px; color: #1E1B4B;
-            }
-            QLineEdit:focus { border-color: #06B6D4; }
-            QLabel { color: #1E1B4B; font-size: 12px; font-weight: bold; }
-        """)
-        form = QFormLayout(card)
-        form.setContentsMargins(24, 20, 24, 20)
-        form.setSpacing(14)
-
-        self.but = QLineEdit()
-        self.but.setPlaceholderText("Ex : pour traitement de la paie - mois de juin 2026")
-        self.but.setMinimumHeight(34)
-        form.addRow(IconLabel("fa5s.bullseye", "But :",
-                              icon_color="#06B6D4", icon_size=16), self.but)
-        return card
-
     def _search_agent(self, card):
         matricule = card.mat_input.text().strip().upper()
         if not matricule:
@@ -268,7 +235,9 @@ class AttestationPresenceForm(QWidget):
                                 "Veuillez d'abord identifier l'agent concerné.")
             return
 
-        parameters = {"but": self.but.text().strip() or None}
+        # Le modèle officiel ne prend aucun paramètre : la formule de
+        # clôture est figée (« pour servir et valoir ce que de droit »).
+        parameters = {}
 
         self.gen_btn.setEnabled(False)
         self.gen_btn.setText("  Génération en cours...")
@@ -327,4 +296,3 @@ class AttestationPresenceForm(QWidget):
         self.agent_card.info_label.setStyleSheet(
             "color: #64748B; font-size: 11px; font-style: italic; padding: 8px;"
         )
-        self.but.clear()
