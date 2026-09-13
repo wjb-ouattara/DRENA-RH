@@ -49,13 +49,17 @@ def get_user_data_dir() -> Path:
 # ============================================================
 # MÉTADONNÉES DE L'APPLICATION
 # ============================================================
-APP_NAME = "MENAET-RH"
-APP_FULL_NAME = "MENAET-RH - Gestion des Ressources Humaines"
+# L'application porte le nom de la structure qui l'utilise : la Direction
+# Régionale (DRENAET) de Katiola, et non le ministère de tutelle (MENAET).
+# Ce dernier ne subsiste que dans les références administratives officielles
+# des documents (voir NUMERO_SUFFIX et DOCUMENT_REF_FORMAT plus bas), où il
+# est parfaitement légitime.
+APP_NAME = "DRENAET-RH"
+APP_FULL_NAME = "DRENAET-RH - Gestion des Ressources Humaines"
 APP_VERSION = "1.0.0"
 APP_AUTHOR = "Étudiant Génie Informatique"
-APP_ORGANIZATION = "MENAET de Katiola"
+APP_ORGANIZATION = "DRENAET de Katiola"
 APP_DESCRIPTION = "Outil de gestion des ressources humaines"
-ORGANIZATION = "MENAET de Katiola"
 
 # ============================================================
 # CHEMINS DU PROJET
