@@ -1,5 +1,10 @@
 /* ========================================================================
-   PATCH — Sidebar en thème clair (à coller en FIN de main.qss)
+   PATCH — Sidebar en thème clair
+   ========================================================================
+   ATTENTION : ce fichier n'est PAS chargé par l'application. Son contenu a
+   déjà été recopié en fin de ressources/styles/main.qss, qui est la seule
+   feuille lue au démarrage (src/ui/app.py). Il est conservé à titre de
+   référence et peut être supprimé sans effet.
    ======================================================================== */
 
 QWidget#sidebar {
@@ -9,6 +14,7 @@ QWidget#sidebar {
 
 QWidget#sidebarHeader {
     background-color: transparent;
+    border-bottom: 1px solid #FFEDD5;
 }
 
 QLabel#appLogo {
@@ -24,4 +30,5 @@ QLabel#appSubtitle {
 QLabel#sidebarFooter {
     color: #D6D3D1;
     background: transparent;
+    border-top: 1px solid #FFEDD5;
 }

@@ -22,7 +22,10 @@ ROOT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from config import settings
-from src.models import init_db, get_session, Utilisateur, Personnel, Structure
+
+# La couche SQLAlchemy n'est PAS importée ici : son chargement est le plus
+# coûteux du démarrage et il retardait l'affichage de l'écran d'attente.
+# L'import a lieu dans initialize_app(), une fois le splash visible.
 
 
 # ============================================================
@@ -52,17 +55,33 @@ def setup_logging():
 # ============================================================
 # INITIALISATION
 # ============================================================
-def initialize_app():
-    """Vérifie l'état de la BD et lance le seed si nécessaire."""
+def initialize_app(splash=None):
+    """
+    Vérifie l'état de la BD et lance le seed si nécessaire.
+
+    `splash` est l'écran d'attente à tenir informé de l'avancement. Il peut
+    être absent : l'initialisation reste alors parfaitement fonctionnelle,
+    simplement silencieuse.
+    """
     logger = logging.getLogger(__name__)
     logger.info("=" * 60)
     logger.info(f"  Démarrage de {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info("=" * 60)
 
+    def etape(texte):
+        if splash is not None:
+            splash.etape(texte)
+
+    etape("Chargement des composants…")
+    from src.models import (
+        init_db, get_session, Utilisateur, Personnel, Structure,
+    )
+
     # Créer le schéma AVANT toute lecture en base.
     # L'ordre importe : sync_to_runtime_config() lit la table `settings`, qui
     # n'existe qu'après init_db(). L'inverser provoquait une erreur
     # « no such table: settings » sur toute base neuve.
+    etape("Vérification de la base de données…")
     init_db()
     logger.info("✓ Schéma BD vérifié")
 
@@ -79,6 +98,9 @@ def initialize_app():
     # Si la BD est vide, on seed automatiquement
     if nb_users == 0:
         logger.info("→ Base vide, génération des données initiales...")
+        # Cette étape est longue (80 agents, hachage bcrypt) et n'a lieu qu'au
+        # tout premier lancement : il est important de l'annoncer.
+        etape("Premier lancement : création des données initiales…")
         from src.utils.seed_data import seed_all
         result = seed_all(nb_agents=80, force=False)
         logger.info(f"✓ Seed terminé : {result}")
@@ -86,6 +108,7 @@ def initialize_app():
 
     # Charger les paramètres personnalisés en mémoire, maintenant que le
     # schéma existe et que les données initiales sont en place.
+    etape("Chargement des paramètres…")
     from src.services.settings_service import SettingsService
     SettingsService.sync_to_runtime_config()
     logger.info("✓ Paramètres chargés")
@@ -100,18 +123,37 @@ def main():
     """Point d'entrée principal."""
     setup_logging()
 
+    splash = None
     try:
-        # 1. Initialiser la base de données
-        if not initialize_app():
+        # 1. Créer l'application Qt et afficher immédiatement l'écran
+        #    d'attente. Cet ordre est essentiel : les préparatifs qui suivent
+        #    sont synchrones, et rien ne pourrait s'afficher pendant.
+        from PyQt6.QtWidgets import QApplication
+        qapp = QApplication.instance() or QApplication(sys.argv)
+
+        from src.ui.widgets.splash_screen import SplashDemarrage
+        splash = SplashDemarrage()
+        splash.show()
+        splash.etape("Démarrage…")
+        # Repère de mesure : c'est le premier instant où l'utilisateur voit
+        # quelque chose après le double-clic.
+        logging.getLogger(__name__).info("✓ Écran de démarrage affiché")
+
+        # 2. Initialiser la base de données
+        if not initialize_app(splash):
+            splash.close()
             print("ÉCHEC : impossible d'initialiser l'application.")
             return 1
 
-        # 2. Lancer l'application PyQt6
+        # 3. Lancer l'application PyQt6
+        splash.etape("Ouverture de la session…")
         from src.ui.app import DrenaetRHApp
-        app = DrenaetRHApp()
-        return app.run()
+        app = DrenaetRHApp(qapp)
+        return app.run(splash)
 
     except Exception as e:
+        if splash is not None:
+            splash.close()
         logging.exception(f"Erreur fatale : {e}")
         print(f"\n❌ ERREUR FATALE : {e}")
         print(f"   Voir le fichier {settings.LOG_DIR / 'app.log'} pour les détails")

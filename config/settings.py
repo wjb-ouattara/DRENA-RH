@@ -49,13 +49,17 @@ def get_user_data_dir() -> Path:
 # ============================================================
 # MÉTADONNÉES DE L'APPLICATION
 # ============================================================
+# Nom retenu par le client : MENAET-RH, celui du ministère. C'est une décision
+# de sa part, confirmée explicitement, et non une inadvertance : ne pas la
+# « corriger » en DRENAET-RH.
+# Le nom est lu ici par la fenêtre principale, la barre de titre, le sidebar et
+# les journaux : cette constante est la seule source de vérité.
 APP_NAME = "MENAET-RH"
 APP_FULL_NAME = "MENAET-RH - Gestion des Ressources Humaines"
 APP_VERSION = "1.0.0"
 APP_AUTHOR = "Étudiant Génie Informatique"
 APP_ORGANIZATION = "MENAET de Katiola"
 APP_DESCRIPTION = "Outil de gestion des ressources humaines"
-ORGANIZATION = "MENAET de Katiola"
 
 # ============================================================
 # CHEMINS DU PROJET

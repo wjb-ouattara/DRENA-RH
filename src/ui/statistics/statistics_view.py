@@ -32,6 +32,15 @@ class StatisticsView(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._build_ui()
+        # Le rafraîchissement n'a PAS lieu ici : il lance une salve de
+        # requêtes d'agrégation sur toute la base, qui retardait l'affichage
+        # de la fenêtre principale alors que la vue n'était pas encore
+        # regardée. Il est déclenché à l'affichage (showEvent).
+
+    # ====================================================================
+    def showEvent(self, event):
+        """Charge les chiffres à l'affichage de la vue, et à chaque retour."""
+        super().showEvent(event)
         self.refresh()
 
     # ====================================================================

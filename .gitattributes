@@ -20,6 +20,10 @@
 *.ps1   text eol=crlf
 
 # Binaires : aucune conversion.
+# L'executable livre dans dist/ en fait partie : la moindre conversion de fin
+# de ligne le rendrait inexecutable.
+*.exe   binary
+*.dll   binary
 *.pdf   binary
 *.xlsx  binary
 *.xls   binary

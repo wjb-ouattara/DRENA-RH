@@ -40,7 +40,10 @@ QWidget#sidebar {
 QWidget#sidebarHeader {
     background-color: #1E1B4B;
     padding: 20px;
-    border-bottom: 1px solid #312E81;
+    /* Filet orange tres pale : le theme clair plus bas ne redeclare pas cette
+       propriete, l'indigo #312E81 d'origine survivait donc a la surcharge et
+       tranchait sur le sidebar blanc. */
+    border-bottom: 1px solid #FFEDD5;
 }
 
 QLabel#appLogo {
@@ -85,7 +88,8 @@ QLabel#sidebarFooter {
     color: #94A3B8;
     font-size: 10px;
     padding: 12px;
-    border-top: 1px solid #312E81;
+    /* Meme remarque que pour #sidebarHeader : filet orange discret. */
+    border-top: 1px solid #FFEDD5;
 }
 
 
@@ -412,6 +416,10 @@ QWidget#sidebar {
 
 QWidget#sidebarHeader {
     background-color: transparent;
+    /* Filet redeclare ici explicitement : une regle QSS plus tardive ne
+       remplace que les proprietes qu'elle nomme. Sans cette ligne, la valeur
+       du bloc sombre plus haut s'appliquerait encore. */
+    border-bottom: 1px solid #FFEDD5;
 }
 
 QLabel#appLogo {
@@ -427,4 +435,5 @@ QLabel#appSubtitle {
 QLabel#sidebarFooter {
     color: #D6D3D1;
     background: transparent;
+    border-top: 1px solid #FFEDD5;
 }

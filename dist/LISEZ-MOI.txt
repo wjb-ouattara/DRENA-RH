@@ -1,0 +1,80 @@
+MENAET-RH — Installation sur un autre poste
+============================================
+
+Contenu
+-------
+DRENAET-RH.exe   L'application complete, en un seul fichier.
+
+Il n'y a rien a installer : Python, PyQt6 et toutes les bibliotheques sont
+deja contenus dans ce fichier.
+
+
+Ce qu'il faut sur le poste
+--------------------------
+- Windows 10 ou 11, en 64 bits.
+- Environ 150 Mo d'espace libre (l'executable plus la base de donnees).
+- Aucun droit administrateur, aucune connexion Internet.
+
+
+Comment lancer l'application
+----------------------------
+1. Copiez DRENAET-RH.exe sur le poste, par exemple dans
+   Documents\MENAET-RH\ ou sur le Bureau.
+2. Double-cliquez dessus.
+
+Le PREMIER lancement est lent : comptez 20 a 40 secondes. C'est l'antivirus de
+Windows qui analyse un fichier qu'il n'a jamais vu. Les lancements suivants
+prennent environ 5 secondes. Un ecran d'attente s'affiche pendant ce temps.
+
+Si Windows affiche un avertissement bleu « Windows a protege votre ordinateur »,
+cliquez sur « Informations complementaires » puis sur « Executer quand meme ».
+Cet avertissement apparait parce que le programme n'est pas signe par un
+certificat commercial, pas parce qu'il est dangereux.
+
+
+Premiere connexion
+------------------
+Identifiant : admin
+Mot de passe : admin2026
+
+Changez ce mot de passe des la premiere connexion, dans Parametres.
+
+
+Ou sont enregistrees les donnees
+--------------------------------
+Dans le dossier personnel de l'utilisateur Windows :
+
+   %LOCALAPPDATA%\DRENAET-RH
+
+Vous pouvez y acceder en collant ce chemin dans la barre d'adresse de
+l'explorateur de fichiers. Il contient :
+
+   data\        la base de donnees (drenaet.db)
+   logs\        les journaux, utiles en cas d'anomalie
+   output\      les documents PDF generes, classes par annee scolaire
+   backups\     les sauvegardes
+
+Ce dossier est cree automatiquement au premier lancement. Il est PROPRE A
+CHAQUE UTILISATEUR et a chaque poste : les donnees ne suivent pas
+l'executable.
+
+
+Deplacer les donnees vers un autre poste
+----------------------------------------
+Copiez le fichier data\drenaet.db depuis le dossier ci-dessus vers le meme
+emplacement sur le nouveau poste, application fermee. Si trois fichiers sont
+presents (drenaet.db, drenaet.db-wal, drenaet.db-shm), copiez-les tous les
+trois.
+
+
+Mettre a jour l'application
+---------------------------
+Fermez l'application, remplacez DRENAET-RH.exe par la nouvelle version, et
+relancez. Les donnees ne sont pas touchees, elles vivent ailleurs.
+
+
+Remarque sur le nom des fichiers
+--------------------------------
+L'application s'appelle MENAET-RH, mais le fichier executable et le dossier de
+donnees portent encore le nom DRENAET-RH. C'est volontaire : renommer le
+dossier couperait l'acces aux donnees deja saisies.
