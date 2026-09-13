@@ -72,6 +72,9 @@ hiddenimports = [
     # Popup de changement de mot de passe (import différé dans main_window)
     "src.ui.widgets.change_password_dialog",
 
+    # Écran de démarrage (importé dans main() après création de QApplication)
+    "src.ui.widgets.splash_screen",
+
     # Modèles SQLAlchemy chargés dans init_db()
     "src.models.structure",
     "src.models.personnel",
@@ -107,6 +110,18 @@ excludes = [
     "jupyter",
     "notebook",
     "pytest",
+
+    # lxml : 6,6 Mo, tire par openpyxl mais purement optionnel. Sans lui,
+    # openpyxl retombe sur ElementTree de la bibliotheque standard. Les
+    # fichiers importes comptent quelques dizaines de lignes, la difference de
+    # vitesse est imperceptible. Aucune reference a lxml dans le code.
+    "lxml",
+
+    # Visionneuse PDF de Qt (Qt6Pdf.dll, 5,2 Mo) : les PDF sont produits par
+    # reportlab et ouverts par le lecteur du systeme, jamais affiches dans
+    # l'application.
+    "PyQt6.QtPdf",
+    "PyQt6.QtPdfWidgets",
 ]
 
 # ========================================================================
@@ -140,7 +155,11 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    # UPX desactive volontairement : la compression doit etre defaite a CHAQUE
+    # lancement, avant meme le demarrage de Python. Le fichier gagne une
+    # quinzaine de Mo mais s'ouvre nettement plus vite, ce qui est le
+    # compromis retenu avec le client.
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,          # application graphique : pas de console noire

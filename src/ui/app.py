@@ -29,9 +29,11 @@ logger = logging.getLogger(__name__)
 class DrenaetRHApp:
     """Application DRENAET-RH (orchestrateur)."""
 
-    def __init__(self):
-        # Créer l'application Qt
-        self.qapp = QApplication(sys.argv)
+    def __init__(self, qapp=None):
+        # L'application Qt peut avoir été créée en amont par main.py, pour
+        # afficher l'écran d'attente avant les préparatifs. On la réutilise :
+        # instancier un second QApplication lèverait une erreur.
+        self.qapp = qapp or QApplication.instance() or QApplication(sys.argv)
         self.qapp.setApplicationName(settings.APP_NAME)
         self.qapp.setApplicationVersion(settings.APP_VERSION)
         self.qapp.setOrganizationName(settings.APP_ORGANIZATION)
@@ -63,9 +65,16 @@ class DrenaetRHApp:
             logger.warning(f"Feuille de style introuvable : {qss_file}")
 
     # ================================================================
-    def run(self) -> int:
-        """Lance l'application : affiche le login."""
+    def run(self, splash=None) -> int:
+        """Lance l'application : affiche le login.
+
+        `splash` est l'écran d'attente à refermer dès que la fenêtre de
+        connexion est prête. Sa méthode finish() attend que la fenêtre soit
+        réellement dessinée, ce qui évite un clignotement d'écran vide.
+        """
         self._show_login()
+        if splash is not None:
+            splash.finish(self.login_window)
         return self.qapp.exec()
 
     # ================================================================
