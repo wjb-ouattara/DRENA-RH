@@ -210,8 +210,10 @@ class QuickActionButton(QPushButton):
 class DashboardView(QWidget):
     """Page d'accueil du logiciel — version 2, orientée action."""
 
-    # Émis quand l'utilisateur clique une action rapide.
-    # value ∈ {"personnel", "documents", "absences", "statistiques"}
+    # Émis quand l'utilisateur clique une action rapide. La valeur doit être
+    # une CLÉ DE MENU de MainWindow (voir la liste `menus` dans
+    # src/ui/main_window.py), sinon la navigation est ignorée.
+    # value ∈ {"personnel", "documents", "absences", "statistics"}
     navigate_requested = pyqtSignal(str)
 
     def __init__(self, parent=None):
@@ -382,11 +384,15 @@ class DashboardView(QWidget):
     def _build_quick_actions(self) -> QFrame:
         frame, layout = self._build_section_frame("Actions rapides", "fa5s.bolt")
 
+        # Le dernier champ est la CLÉ DE MENU visée : elle doit correspondre
+        # exactement à une clé de MainWindow.menu_buttons. "statistiques"
+        # était écrit ici en français alors que le menu enregistre
+        # "statistics" : le clic était silencieusement ignoré.
         actions = [
             ("fa5s.user-plus", "Ajouter un agent", ORANGE_PRIMARY, "personnel"),
             ("fa5s.file-medical", "Générer un document", "#2563EB", "documents"),
             ("fa5s.file-import", "Importer un fichier Excel", GREEN_CI, "personnel"),
-            ("fa5s.chart-bar", "Voir les statistiques", "#B45309", "statistiques"),
+            ("fa5s.chart-bar", "Voir les statistiques", "#B45309", "statistics"),
         ]
 
         for icon, label, color, target in actions:

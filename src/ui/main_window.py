@@ -21,6 +21,8 @@ Layout :
   └─────────┴────────────────────────────────────────────────┘
 """
 
+import importlib
+import logging
 from pathlib import Path
 from src.ui.personnel import PersonnelView
 
@@ -46,6 +48,8 @@ from src.ui.settings import SettingsView
 from src.ui.administration import AdministrationView
 from src.ui.widgets.user_profile_card import UserProfileCard
 
+logger = logging.getLogger(__name__)
+
 
 # ========================================================================
 # PALETTE — "Light & Ember" (cohérente avec login / dashboard / settings)
@@ -60,6 +64,32 @@ ORANGE_PRIMARY = "#F97316"
 
 # Pages dont l'accès est réservé au rôle "admin"
 ADMIN_ONLY_PAGES = frozenset({"parametres", "administration"})
+
+# Formulaires du module Documents : type de document -> (module, classe).
+# Ils sont importés à la demande, au premier accès, et non au démarrage :
+# chacun tire reportlab, dont le chargement est coûteux et inutile tant que
+# l'utilisateur ne génère aucun document.
+# Ces modules sont déclarés dans les `hiddenimports` de main.spec, sans quoi
+# PyInstaller ne pourrait pas les découvrir et ils manqueraient à l'exécutable.
+FORMULAIRES_DOCUMENTS = {
+    "autorisation_absence": (
+        "src.ui.documents.autorisation_form", "AutorisationAbsenceForm"),
+    "ordre_mission": (
+        "src.ui.documents.ordre_mission_form", "OrdreMissionForm"),
+    "attestation_travail": (
+        "src.ui.documents.attestation_travail_form", "AttestationTravailForm"),
+    "attestation_presence": (
+        "src.ui.documents.attestation_presence_form", "AttestationPresenceForm"),
+    "titre_conges": (
+        "src.ui.documents.titre_conges_form", "TitreCongesForm"),
+    "certificat_prise_service": (
+        "src.ui.documents.certificat_prise_service_form",
+        "CertificatPriseServiceForm"),
+    "certificat_cessation": (
+        "src.ui.documents.certificat_cessation_form", "CertificatCessationForm"),
+    "fiche_mutation": (
+        "src.ui.documents.fiche_mutation_form", "FicheMutationForm"),
+}
 
 
 class MainWindow(ResizableWindowMixin, QMainWindow):
@@ -107,9 +137,12 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
         outer_layout.setSpacing(0)
 
         # === BARRE TITRE CUSTOM (en haut) ===
+        # Le nom vient de settings.APP_NAME et n'est plus écrit en dur : le
+        # nom codé en dur ici différait de celui du sidebar, et les deux
+        # s'affichaient côte à côte.
         logo_path = settings.IMAGES_DIR / "logo_drena.png"
         self.title_bar = CustomTitleBar(
-            title="DRENAET-RH",
+            title=settings.APP_NAME,
             subtitle="Gestion des Ressources Humaines",
             logo_path=str(logo_path) if logo_path.exists() else None,
         )
@@ -416,60 +449,64 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
         self.pages["personnel"] = PersonnelView()
 
         # === Module Documents ===
+        # Seule la liste des documents est construite maintenant. Les 8
+        # formulaires sont créés au premier accès : chacun tire la chaîne
+        # document_templates → reportlab, dont l'initialisation du registre de
+        # polices coûte plusieurs centaines de millisecondes, inutiles tant
+        # qu'aucun document n'est généré.
         from src.ui.documents.documents_view import DocumentsView
-        from src.ui.documents.autorisation_form import AutorisationAbsenceForm
-        from src.ui.documents.ordre_mission_form import OrdreMissionForm
-        from src.ui.documents.attestation_travail_form import AttestationTravailForm
-        from src.ui.documents.attestation_presence_form import AttestationPresenceForm
-        from src.ui.documents.titre_conges_form import TitreCongesForm
-        from src.ui.documents.certificat_prise_service_form import CertificatPriseServiceForm
-        from src.ui.documents.certificat_cessation_form import CertificatCessationForm
-        from src.ui.documents.fiche_mutation_form import FicheMutationForm
 
         docs_stack = QStackedWidget()
         docs_list = DocumentsView()
-        docs_autorisation = AutorisationAbsenceForm()
-        docs_ordre_mission = OrdreMissionForm()
-        docs_attestation_travail = AttestationTravailForm()
-        docs_attestation_presence = AttestationPresenceForm()
-        docs_titre_conges = TitreCongesForm()
-        docs_certificat_prise = CertificatPriseServiceForm()
-        docs_certificat_cessation = CertificatCessationForm()
-        docs_fiche_mutation = FicheMutationForm()
-
         docs_stack.addWidget(docs_list)
-        docs_stack.addWidget(docs_autorisation)
-        docs_stack.addWidget(docs_ordre_mission)
-        docs_stack.addWidget(docs_attestation_travail)
-        docs_stack.addWidget(docs_attestation_presence)
-        docs_stack.addWidget(docs_titre_conges)
-        docs_stack.addWidget(docs_certificat_prise)
-        docs_stack.addWidget(docs_certificat_cessation)
-        docs_stack.addWidget(docs_fiche_mutation)
+
+        # type_doc -> formulaire déjà construit. La navigation reste
+        # instantanée aux visites suivantes.
+        formulaires_ouverts = {}
 
         def open_doc_form(type_doc):
-            mapping = {
-                "autorisation_absence": 1,
-                "ordre_mission": 2,
-                "attestation_travail": 3,
-                "attestation_presence": 4,
-                "titre_conges": 5,
-                "certificat_prise_service": 6,
-                "certificat_cessation": 7,
-                "fiche_mutation": 8,
-            }
-            if type_doc in mapping:
-                docs_stack.setCurrentIndex(mapping[type_doc])
+            widget = formulaires_ouverts.get(type_doc)
+
+            if widget is None:
+                fabrique = FORMULAIRES_DOCUMENTS.get(type_doc)
+                if fabrique is None:
+                    logger.warning(
+                        "Type de document inconnu : « %s ». Types connus : %s",
+                        type_doc, ", ".join(sorted(FORMULAIRES_DOCUMENTS)),
+                    )
+                    return
+
+                nom_module, nom_classe = fabrique
+                try:
+                    module = importlib.import_module(nom_module)
+                    widget = getattr(module, nom_classe)()
+                except Exception:
+                    # Un formulaire absent du paquet ne doit pas emporter
+                    # toute l'application : on informe et on reste sur place.
+                    logger.exception(
+                        "Impossible d'ouvrir le formulaire %s (%s.%s)",
+                        type_doc, nom_module, nom_classe,
+                    )
+                    QMessageBox.critical(
+                        self,
+                        "Formulaire indisponible",
+                        "Ce formulaire n'a pas pu être ouvert.\n\n"
+                        "Le détail de l'erreur est enregistré dans le journal "
+                        "de l'application.",
+                    )
+                    return
+
+                widget.back_requested.connect(
+                    lambda: docs_stack.setCurrentIndex(0)
+                )
+                docs_stack.addWidget(widget)
+                formulaires_ouverts[type_doc] = widget
+
+            # setCurrentWidget plutôt qu'un index : l'ordre d'ajout dépend
+            # désormais de l'ordre de consultation par l'utilisateur.
+            docs_stack.setCurrentWidget(widget)
 
         docs_list.document_selected.connect(open_doc_form)
-        docs_autorisation.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_ordre_mission.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_attestation_travail.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_attestation_presence.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_titre_conges.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_certificat_prise.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_certificat_cessation.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
-        docs_fiche_mutation.back_requested.connect(lambda: docs_stack.setCurrentIndex(0))
 
         self.pages["documents"] = docs_stack
 
@@ -486,8 +523,24 @@ class MainWindow(ResizableWindowMixin, QMainWindow):
             self.content_stack.addWidget(view)
 
     def _on_dashboard_navigate(self, page_key: str):
+        """
+        Navigue vers la page demandée par une action rapide du tableau de bord.
+
+        Passer par le clic du bouton de menu, et non par setCurrentWidget,
+        met à jour d'un seul geste la page, l'état coché de la sidebar et le
+        titre d'en-tête.
+
+        Une clé inconnue est journalisée : sans cela, un simple désaccord de
+        nommage rendait le bouton inerte sans laisser la moindre trace.
+        """
         if page_key in self.menu_buttons:
             self.menu_buttons[page_key].click()
+        else:
+            logger.warning(
+                "Action rapide ignorée : « %s » ne correspond à aucune clé de "
+                "menu. Clés disponibles : %s",
+                page_key, ", ".join(sorted(self.menu_buttons)),
+            )
 
     # ================================================================
     def _on_menu_click(self, menu_id: str):
